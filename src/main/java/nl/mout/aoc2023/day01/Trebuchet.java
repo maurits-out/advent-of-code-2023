@@ -4,7 +4,7 @@ import nl.mout.aoc2023.support.InputLoader;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static java.util.function.Function.identity;
@@ -14,15 +14,15 @@ public class Trebuchet {
 
     private final String input;
 
-    public Trebuchet(String input) {
+    private Trebuchet(String input) {
         this.input = input;
     }
 
-    public int part1() {
+    private int part1() {
         return calculateSum(createDigitMapping());
     }
 
-    public int part2() {
+    private int part2() {
         var mapping = createDigitMapping();
         extendMappingWithSpelledOutDigits(mapping);
         return calculateSum(mapping);
@@ -53,15 +53,15 @@ public class Trebuchet {
     }
 
     private int extractCalibrationValue(String line, Map<String, Integer> mapping) {
-        var digits = new ArrayList<Integer>();
-        for (var i = 0; i < line.length(); i++) {
-            var s = line.substring(i);
-            mapping.keySet()
-                    .stream()
-                    .filter(s::startsWith)
-                    .findFirst()
-                    .ifPresent(key -> digits.add(mapping.get(key)));
-        }
+        var digits = IntStream.range(0, line.length())
+                .mapToObj(line::substring)
+                .map(s -> mapping.keySet().stream()
+                        .filter(s::startsWith)
+                        .findFirst()
+                        .map(mapping::get))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
         return (digits.getFirst() * 10) + digits.getLast();
     }
 
