@@ -1,8 +1,6 @@
 package nl.mout.aoc2023.day05;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.lang.Math.max;
@@ -57,38 +55,42 @@ public class Seed {
     }
 
     private long part2() {
-        var remainingIntervals = new LinkedList<>(getSeedIntervals());
+        Deque<Interval> remainingIntervals = getSeedIntervals();
         for (var mappingTable : mappingTables) {
-            var nextIntervals = new ArrayList<Interval>();
-            while (!remainingIntervals.isEmpty()) {
-                var interval = remainingIntervals.pop();
-                boolean matchFound = false;
-                for (var mapping : mappingTable.mappings) {
-                    var overlappingInterval = new Interval(max(mapping.sourceStart, interval.from), min(mapping.sourceStart + mapping.length, interval.to));
-                    if (overlappingInterval.from < overlappingInterval.to) {
-                        matchFound = true;
-                        nextIntervals.add(new Interval(getDestination(overlappingInterval.from, mapping), getDestination(overlappingInterval.to, mapping)));
-                        if (interval.from < overlappingInterval.from) {
-                            remainingIntervals.push(new Interval(interval.from, overlappingInterval.from));
-                        }
-                        if (overlappingInterval.to < interval.to) {
-                            remainingIntervals.push(new Interval(overlappingInterval.to, interval.to));
-                        }
-                    }
-                }
-                if (!matchFound) {
-                    nextIntervals.add(interval);
-                }
-            }
-            remainingIntervals.addAll(nextIntervals);
+            remainingIntervals = calculateNextIntervals(mappingTable, remainingIntervals);
         }
         return remainingIntervals.stream().mapToLong(interval -> interval.from).min().orElseThrow();
     }
 
-    private List<Interval> getSeedIntervals() {
-        var intervals = new ArrayList<Interval>();
+    private Deque<Interval> calculateNextIntervals(MappingTable mappingTable, Deque<Interval> remainingIntervals) {
+        var nextIntervals = new LinkedList<Interval>();
+        while (!remainingIntervals.isEmpty()) {
+            var interval = remainingIntervals.pop();
+            var matchFound = false;
+            for (var mapping : mappingTable.mappings) {
+                var overlappingInterval = new Interval(max(mapping.sourceStart, interval.from), min(mapping.sourceStart + mapping.length, interval.to));
+                if (overlappingInterval.from < overlappingInterval.to) {
+                    matchFound = true;
+                    nextIntervals.push(new Interval(getDestination(overlappingInterval.from, mapping), getDestination(overlappingInterval.to, mapping)));
+                    if (interval.from < overlappingInterval.from) {
+                        remainingIntervals.push(new Interval(interval.from, overlappingInterval.from));
+                    }
+                    if (overlappingInterval.to < interval.to) {
+                        remainingIntervals.push(new Interval(overlappingInterval.to, interval.to));
+                    }
+                }
+            }
+            if (!matchFound) {
+                nextIntervals.push(interval);
+            }
+        }
+        return nextIntervals;
+    }
+
+    private Deque<Interval> getSeedIntervals() {
+        var intervals = new LinkedList<Interval>();
         for (var i = 0; i < seeds.size(); i += 2) {
-            intervals.add(new Interval(seeds.get(i), seeds.get(i) + seeds.get(i + 1)));
+            intervals.push(new Interval(seeds.get(i), seeds.get(i) + seeds.get(i + 1)));
         }
         return intervals;
     }
@@ -97,9 +99,7 @@ public class Seed {
         return mappingTable.mappings.stream()
                 .filter(mapping -> isInRange(value, mapping))
                 .findFirst()
-                .map(mapping -> {
-                    return getDestination(value, mapping);
-                })
+                .map(mapping -> getDestination(value, mapping))
                 .orElse(value);
     }
 
