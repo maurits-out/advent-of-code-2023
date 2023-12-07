@@ -16,7 +16,7 @@ public class WaitForIt {
         return countSuccessfulAttempt(race);
     }
 
-    private long countSuccessfulAttempt(Race race) {
+    long countSuccessfulAttempt(Race race) {
         var start = iterate(2, buttonTime -> buttonTime + 1)
                 .filter(buttonTime -> calculateDistance(race.time, buttonTime) > race.distance)
                 .findFirst().orElseThrow();
@@ -24,11 +24,11 @@ public class WaitForIt {
         return (end - start) + 1;
     }
 
-    private long calculateDistance(long raceTime, long buttonTime) {
+    long calculateDistance(long raceTime, long buttonTime) {
         return (raceTime - buttonTime) * buttonTime;
     }
 
-    private record Race(long time, long distance) {
+    record Race(long time, long distance) {
     }
 
     public static void main(String[] args) {

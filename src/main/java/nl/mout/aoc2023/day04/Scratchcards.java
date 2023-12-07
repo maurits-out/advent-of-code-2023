@@ -14,13 +14,13 @@ import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
 public class Scratchcards {
 
-    private final Map<Integer, Integer> matchingNumberCountById;
+    final Map<Integer, Integer> matchingNumberCountById;
 
     public Scratchcards(String input) {
         this.matchingNumberCountById = parseInput(input);
     }
 
-    private Map<Integer, Integer> parseInput(String input) {
+    Map<Integer, Integer> parseInput(String input) {
         var result = new HashMap<Integer, Integer>();
         input.lines().forEach(line -> {
             var parts = line.split("[:|]");
@@ -33,19 +33,19 @@ public class Scratchcards {
         return result;
     }
 
-    private Set<Integer> parseNumberSequence(String part) {
+    Set<Integer> parseNumberSequence(String part) {
         return stream(part.trim().split("\\s+"))
                 .map(Integer::parseInt)
                 .collect(toSet());
     }
 
-    private int part1() {
+    int part1() {
         return matchingNumberCountById.values().stream()
                 .mapToInt(count -> count == 0 ? 0 : (int) round(pow(2, count - 1)))
                 .sum();
     }
 
-    private int part2() {
+    int part2() {
         var countPerCard = new int[matchingNumberCountById.size() + 1];
         fill(countPerCard, 1);
 

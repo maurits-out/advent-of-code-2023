@@ -8,26 +8,26 @@ import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
 public class CubeConundrum {
 
-    private final List<Game> games;
+    final List<Game> games;
 
-    private CubeConundrum(String input) {
+    CubeConundrum(String input) {
         this.games = input.lines().map(this::parse).toList();
     }
 
-    private int part1() {
+    int part1() {
         return games.stream()
                 .filter(this::supportsConfiguration)
                 .mapToInt(Game::id)
                 .sum();
     }
 
-    private int part2() {
+    int part2() {
         return games.stream()
                 .mapToInt(this::powerOfFewestNumberOfCubes)
                 .sum();
     }
 
-    private int powerOfFewestNumberOfCubes(Game game) {
+    int powerOfFewestNumberOfCubes(Game game) {
         var sets = game.sets();
         var red = sets.stream().mapToInt(GameSet::red).max().orElse(1);
         var green = sets.stream().mapToInt(GameSet::green).max().orElse(1);
@@ -35,12 +35,12 @@ public class CubeConundrum {
         return red * green * blue;
     }
 
-    private boolean supportsConfiguration(Game game) {
+    boolean supportsConfiguration(Game game) {
         return game.sets().stream()
                 .allMatch(set -> set.red() <= 12 && set.green() <= 13 && set.blue() <= 14);
     }
 
-    private Game parse(String line) {
+    Game parse(String line) {
         var parts = line.split("[:;] ");
         var gameId = parseInt(parts[0].split(" ")[1]);
         var gameSets = new ArrayList<GameSet>();
@@ -65,10 +65,10 @@ public class CubeConundrum {
         return new Game(gameId, gameSets);
     }
 
-    private record Game(int id, List<GameSet> sets) {
+    record Game(int id, List<GameSet> sets) {
     }
 
-    private record GameSet(int red, int blue, int green) {
+    record GameSet(int red, int blue, int green) {
     }
 
     public static void main(String[] args) {

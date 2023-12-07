@@ -14,16 +14,16 @@ import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
 public class GearRatios {
 
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("\\d+");
-    private final String[] schemaLines;
-    private final int width;
+    static final Pattern NUMBER_PATTERN = Pattern.compile("\\d+");
+    final String[] schemaLines;
+    final int width;
 
-    private GearRatios(String input) {
+    GearRatios(String input) {
         schemaLines = input.lines().toArray(String[]::new);
         width = schemaLines[0].length();
     }
 
-    private int part1() {
+    int part1() {
         var sum = 0;
         for (var row = 0; row < schemaLines.length; row++) {
             var line = schemaLines[row];
@@ -39,7 +39,7 @@ public class GearRatios {
         return sum;
     }
 
-    private int part2() {
+    int part2() {
         var numbersByGear = new HashMap<AdjacentSymbol, List<Integer>>();
         for (var row = 0; row < schemaLines.length; row++) {
             var line = schemaLines[row];
@@ -61,7 +61,7 @@ public class GearRatios {
         return numbersByGear.values().stream().filter(numbers -> numbers.size() == 2).mapToInt(numbers -> numbers.getFirst() * numbers.getLast()).sum();
     }
 
-    private List<AdjacentSymbol> getAdjacentSymbols(int row, int start, int end) {
+    List<AdjacentSymbol> getAdjacentSymbols(int row, int start, int end) {
         var symbols = new ArrayList<AdjacentSymbol>();
         if (row > 0) {
             rangeClosed(max(start - 1, 0), min(end, width - 1)).forEach(column -> {
@@ -94,11 +94,11 @@ public class GearRatios {
         return symbols;
     }
 
-    private static boolean isSymbol(char ch) {
+    static boolean isSymbol(char ch) {
         return !isDigit(ch) && ch != '.';
     }
 
-    private record AdjacentSymbol(int row, int column, char symbol) {
+    record AdjacentSymbol(int row, int column, char symbol) {
         boolean isGear() {
             return symbol == '*';
         }

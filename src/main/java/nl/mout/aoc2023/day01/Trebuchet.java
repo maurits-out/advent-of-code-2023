@@ -9,32 +9,33 @@ import java.util.stream.IntStream;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
 public class Trebuchet {
 
-    private final String input;
+    final String input;
 
-    private Trebuchet(String input) {
+    Trebuchet(String input) {
         this.input = input;
     }
 
-    private int part1() {
+    int part1() {
         return calculateSum(createDigitMapping());
     }
 
-    private int part2() {
+    int part2() {
         var mapping = createDigitMapping();
         extendMappingWithSpelledOutDigits(mapping);
         return calculateSum(mapping);
     }
 
-    private Map<String, Integer> createDigitMapping() {
+    Map<String, Integer> createDigitMapping() {
         return IntStream.range(0, 10)
                 .boxed()
                 .collect(toMap(String::valueOf, identity()));
     }
 
-    private void extendMappingWithSpelledOutDigits(Map<String, Integer> mapping) {
+    void extendMappingWithSpelledOutDigits(Map<String, Integer> mapping) {
         mapping.put("one", 1);
         mapping.put("two", 2);
         mapping.put("three", 3);
@@ -46,13 +47,13 @@ public class Trebuchet {
         mapping.put("nine", 9);
     }
 
-    private int calculateSum(Map<String, Integer> mapping) {
+    int calculateSum(Map<String, Integer> mapping) {
         return input.lines()
                 .mapToInt(line -> extractCalibrationValue(line, mapping))
                 .sum();
     }
 
-    private int extractCalibrationValue(String line, Map<String, Integer> mapping) {
+    int extractCalibrationValue(String line, Map<String, Integer> mapping) {
         var digits = IntStream.range(0, line.length())
                 .mapToObj(line::substring)
                 .map(s -> mapping.keySet().stream()
@@ -66,7 +67,7 @@ public class Trebuchet {
     }
 
     public static void main(String[] args) {
-        var input = InputLoader.loadInput("day01-input.txt");
+        var input = loadInput("day01-input.txt");
         var trebuchet = new Trebuchet(input);
         System.out.printf("Part 1: %d\n", trebuchet.part1());
         System.out.printf("Part 2: %d\n", trebuchet.part2());
