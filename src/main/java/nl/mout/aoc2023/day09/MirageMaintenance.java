@@ -1,13 +1,12 @@
 package nl.mout.aoc2023.day09;
 
-import nl.mout.aoc2023.support.InputLoader;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.function.BiFunction;
 
 import static java.util.stream.IntStream.range;
+import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
 public class MirageMaintenance {
 
@@ -33,28 +32,28 @@ public class MirageMaintenance {
                 .toList();
     }
 
-    int extrapolate(List<Integer> numbers, BiFunction<List<Integer>, Integer, Integer> placeholder) {
+    int extrapolate(List<Integer> numbers, BiFunction<List<Integer>, Integer, Integer> placeholderFunction) {
         if (allZero(numbers)) {
             return 0;
         }
         var diffs = calculateDiffs(numbers);
-        return placeholder.apply(numbers, extrapolate(diffs, placeholder));
+        return placeholderFunction.apply(numbers, extrapolate(diffs, placeholderFunction));
     }
 
-    int extrapolateAndSum(BiFunction<List<Integer>, Integer, Integer> placeholder) {
-        return lines.stream().mapToInt(numbers -> extrapolate(numbers, placeholder)).sum();
+    int extrapolateAndSum(BiFunction<List<Integer>, Integer, Integer> placeholderFunction) {
+        return lines.stream().mapToInt(numbers -> extrapolate(numbers, placeholderFunction)).sum();
     }
 
     int part1() {
-        return extrapolateAndSum((numbers, diff) -> numbers.getLast() + diff);
+        return extrapolateAndSum((row, placeholder) -> row.getLast() + placeholder);
     }
 
     int part2() {
-        return extrapolateAndSum((numbers, diff) -> numbers.getFirst() - diff);
+        return extrapolateAndSum((row, placeholder) -> row.getFirst() - placeholder);
     }
 
     public static void main(String[] args) {
-        var input = InputLoader.loadInput("day09-input.txt");
+        var input = loadInput("day09-input.txt");
         var mirageMaintenance = new MirageMaintenance(input);
         System.out.println("Part 1: " + mirageMaintenance.part1());
         System.out.println("Part 2: " + mirageMaintenance.part2());
