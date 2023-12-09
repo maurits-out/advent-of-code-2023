@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.function.BiFunction;
 
+import static java.lang.Integer.parseInt;
 import static java.util.Collections.list;
 import static java.util.stream.IntStream.range;
 import static nl.mout.aoc2023.support.InputLoader.loadInput;
@@ -18,7 +19,7 @@ public class MirageMaintenance {
 
     List<Integer> parseLine(String line) {
         return list(new StringTokenizer(line, " ")).stream()
-                .map(token -> Integer.parseInt((String) token))
+                .map(token -> parseInt((String) token))
                 .toList();
     }
 
