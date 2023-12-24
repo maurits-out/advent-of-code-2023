@@ -110,31 +110,31 @@ public class Aplenty {
             return 0;
         }
 
-        var result = 0L;
+        var sum = 0L;
 
         loop:
         for (var rule : workflows.get(name).rules()) {
             switch (rule) {
                 case Constant(var dest) when dest.equals("A") -> {
-                    result += countCombinations(dest, intervals);
+                    sum += countCombinations(dest, intervals);
                     break loop;
                 }
                 case Constant(var dest) when dest.equals("R") -> {
                     break loop;
                 }
                 case Constant(var dest) -> {
-                    result += countCombinations(dest, intervals);
+                    sum += countCombinations(dest, intervals);
                     break loop;
                 }
                 case Comparison c -> {
                     var interval = applyComparisonToInterval(c, intervals.get(c.category()));
-                    result += countCombinations(c.dest(), updateIntervals(intervals, c.category(), interval));
+                    sum += countCombinations(c.dest(), updateIntervals(intervals, c.category(), interval));
                     interval = applyComparisonToInterval(c.negate(), intervals.get(c.category()));
                     intervals = updateIntervals(intervals, c.category(), interval);
                 }
             }
         }
-        return result;
+        return sum;
     }
 
     long countCombinations(Map<String, Interval> intervals) {
