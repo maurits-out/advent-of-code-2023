@@ -29,12 +29,12 @@ public class PipeMaze {
                 .findFirst().orElseThrow();
     }
 
-    Coordinate move(Coordinate current, Direction direction) {
+    Coordinate move(Coordinate coordinate, Direction direction) {
         return switch (direction) {
-            case NORTH -> new Coordinate(current.row - 1, current.column);
-            case SOUTH -> new Coordinate(current.row + 1, current.column);
-            case WEST -> new Coordinate(current.row, current.column - 1);
-            case EAST -> new Coordinate(current.row, current.column + 1);
+            case NORTH -> new Coordinate(coordinate.row - 1, coordinate.column);
+            case SOUTH -> new Coordinate(coordinate.row + 1, coordinate.column);
+            case WEST -> new Coordinate(coordinate.row, coordinate.column - 1);
+            case EAST -> new Coordinate(coordinate.row, coordinate.column + 1);
         };
     }
 
@@ -70,7 +70,6 @@ public class PipeMaze {
         var loopCoordinates = getLoopCoordinates();
         var enclosedTileCount = 0;
 
-        // replace S
         var start = findStart();
         maze[start.row][start.column] = '7';
 

@@ -14,10 +14,6 @@ abstract class Module {
         this.outputs = outputs;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public List<String> getOutputs() {
         return outputs;
     }

@@ -84,22 +84,21 @@ public class PulsePropagation {
         return gcd(b, a % b);
     }
 
+    private List<String> findInputs(String name) {
+        return modules.keySet().stream()
+                .filter(n -> modules.get(n).getOutputs().contains(name))
+                .toList();
+    }
+
     long part2() {
         var broadcasterSignals = createBroadcasterSignals();
         var queue = new LinkedList<Signal>();
-
         var buttonCount = 0;
-
-        var singleInputForRx = modules.keySet().stream()
-                .filter(name -> modules.get(name).getOutputs().contains("rx"))
-                .findFirst().orElseThrow();
-
-        var countForSingleInput = modules.keySet().stream()
-                .filter(name -> modules.get(name).getOutputs().contains(singleInputForRx))
-                .count();
-
+        var singleInputForRx = findInputs("rx").getFirst();
+        var inputCount = findInputs(singleInputForRx).size();
         var buttonCounts = new HashMap<String, Integer>();
-        while (buttonCounts.size() < countForSingleInput) {
+
+        while (buttonCounts.size() < inputCount) {
             buttonCount++;
             queue.addAll(broadcasterSignals);
             while (!queue.isEmpty()) {
