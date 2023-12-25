@@ -14,7 +14,11 @@ public class Snowverload {
     private final SimpleGraph<String, DefaultEdge> graph;
 
     public Snowverload(String input) {
-        graph = new SimpleGraph<>(DefaultEdge.class);
+        graph = createGraph(input);
+    }
+
+    private SimpleGraph<String, DefaultEdge> createGraph(String input) {
+        var graph = new SimpleGraph<String, DefaultEdge>(DefaultEdge.class);
         input.lines().forEach(line -> {
             var tokenizer = new StringTokenizer(line);
             var from = tokenizer.nextToken().substring(0, 3);
@@ -25,6 +29,7 @@ public class Snowverload {
                 graph.addEdge(from, to);
             });
         });
+        return graph;
     }
 
     public int part1() {
