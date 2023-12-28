@@ -8,39 +8,32 @@ import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
 public class CubeConundrum {
 
-    final List<Game> games;
+    private final List<Game> games;
 
-    CubeConundrum(String input) {
+    public CubeConundrum(String input) {
         this.games = input.lines().map(this::parse).toList();
     }
 
-    int part1() {
+    public int part1() {
         return games.stream()
                 .filter(this::supportsConfiguration)
                 .mapToInt(Game::id)
                 .sum();
     }
 
-    int part2() {
+    public int part2() {
         return games.stream()
                 .mapToInt(this::powerOfFewestNumberOfCubes)
                 .sum();
     }
 
-    int powerOfFewestNumberOfCubes(Game game) {
-        var sets = game.sets();
-        var red = sets.stream().mapToInt(GameSet::red).max().orElse(1);
-        var green = sets.stream().mapToInt(GameSet::green).max().orElse(1);
-        var blue = sets.stream().mapToInt(GameSet::blue).max().orElse(1);
-        return red * green * blue;
+    private record Game(int id, List<GameSet> sets) {
     }
 
-    boolean supportsConfiguration(Game game) {
-        return game.sets().stream()
-                .allMatch(set -> set.red() <= 12 && set.green() <= 13 && set.blue() <= 14);
+    private record GameSet(int red, int blue, int green) {
     }
 
-    Game parse(String line) {
+    private Game parse(String line) {
         var parts = line.split("[:;] ");
         var gameId = parseInt(parts[0].split(" ")[1]);
         var gameSets = new ArrayList<GameSet>();
@@ -50,14 +43,9 @@ public class CubeConundrum {
             for (int j = 0; j < draws.length; j += 2) {
                 var amount = parseInt(draws[j]);
                 switch (draws[j + 1]) {
-                    case "red":
-                        red = amount;
-                        break;
-                    case "blue":
-                        blue = amount;
-                        break;
-                    case "green":
-                        green = amount;
+                    case "red" -> red = amount;
+                    case "blue" -> blue = amount;
+                    case "green" -> green = amount;
                 }
             }
             gameSets.add(new GameSet(red, blue, green));
@@ -65,10 +53,17 @@ public class CubeConundrum {
         return new Game(gameId, gameSets);
     }
 
-    record Game(int id, List<GameSet> sets) {
+    private int powerOfFewestNumberOfCubes(Game game) {
+        var sets = game.sets();
+        var red = sets.stream().mapToInt(GameSet::red).max().orElse(1);
+        var green = sets.stream().mapToInt(GameSet::green).max().orElse(1);
+        var blue = sets.stream().mapToInt(GameSet::blue).max().orElse(1);
+        return red * green * blue;
     }
 
-    record GameSet(int red, int blue, int green) {
+    private boolean supportsConfiguration(Game game) {
+        return game.sets().stream()
+                .allMatch(set -> set.red() <= 12 && set.green() <= 13 && set.blue() <= 14);
     }
 
     public static void main(String[] args) {

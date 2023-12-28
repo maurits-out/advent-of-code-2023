@@ -9,33 +9,34 @@ import java.util.stream.IntStream;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.IntStream.range;
 import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
 public class Trebuchet {
 
-    final String input;
+    private final String input;
 
-    Trebuchet(String input) {
+    public Trebuchet(String input) {
         this.input = input;
     }
 
-    int part1() {
+    public int part1() {
         return calculateSum(createDigitMapping());
     }
 
-    int part2() {
+    public int part2() {
         var mapping = createDigitMapping();
         extendMappingWithSpelledOutDigits(mapping);
         return calculateSum(mapping);
     }
 
-    Map<String, Integer> createDigitMapping() {
-        return IntStream.range(0, 10)
+    private Map<String, Integer> createDigitMapping() {
+        return range(0, 10)
                 .boxed()
                 .collect(toMap(String::valueOf, identity()));
     }
 
-    void extendMappingWithSpelledOutDigits(Map<String, Integer> mapping) {
+    private void extendMappingWithSpelledOutDigits(Map<String, Integer> mapping) {
         mapping.put("one", 1);
         mapping.put("two", 2);
         mapping.put("three", 3);
@@ -47,14 +48,14 @@ public class Trebuchet {
         mapping.put("nine", 9);
     }
 
-    int calculateSum(Map<String, Integer> mapping) {
+    private int calculateSum(Map<String, Integer> mapping) {
         return input.lines()
                 .mapToInt(line -> extractCalibrationValue(line, mapping))
                 .sum();
     }
 
-    int extractCalibrationValue(String line, Map<String, Integer> mapping) {
-        var digits = IntStream.range(0, line.length())
+    private int extractCalibrationValue(String line, Map<String, Integer> mapping) {
+        var digits = range(0, line.length())
                 .mapToObj(line::substring)
                 .map(s -> mapping.keySet().stream()
                         .filter(s::startsWith)
