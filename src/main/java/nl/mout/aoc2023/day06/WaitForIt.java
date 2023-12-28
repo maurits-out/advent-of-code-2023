@@ -6,17 +6,20 @@ import static java.util.stream.LongStream.iterate;
 
 public class WaitForIt {
 
-    long part1(List<Race> races) {
+    public long part1(List<Race> races) {
         return races.stream()
                 .mapToLong(this::countSuccessfulAttempt)
                 .reduce(1L, (a, b) -> a * b);
     }
 
-    long part2(Race race) {
+    public long part2(Race race) {
         return countSuccessfulAttempt(race);
     }
 
-    long countSuccessfulAttempt(Race race) {
+    public record Race(long time, long distance) {
+    }
+
+    private long countSuccessfulAttempt(Race race) {
         var start = iterate(2, buttonTime -> buttonTime + 1)
                 .filter(buttonTime -> calculateDistance(race.time, buttonTime) > race.distance)
                 .findFirst().orElseThrow();
@@ -24,19 +27,22 @@ public class WaitForIt {
         return (end - start) + 1;
     }
 
-    long calculateDistance(long raceTime, long buttonTime) {
+    private long calculateDistance(long raceTime, long buttonTime) {
         return (raceTime - buttonTime) * buttonTime;
     }
 
-    record Race(long time, long distance) {
-    }
-
     public static void main(String[] args) {
-        var inputPart1 = List.of(new Race(40, 233), new Race(82, 1011), new Race(84, 1110), new Race(92, 1487));
-        var inputPart2 = new Race(40828492, 233101111101487L);
-
         var waitForIt = new WaitForIt();
-        System.out.println("Part 1: " + waitForIt.part1(inputPart1));
-        System.out.println("Part 2: " + waitForIt.part2(inputPart2));
+
+        var inputPart1 = List.of(
+                new Race(40, 233),
+                new Race(82, 1011),
+                new Race(84, 1110),
+                new Race(92, 1487)
+        );
+        System.out.printf("Part 1: %d\n", waitForIt.part1(inputPart1));
+
+        var inputPart2 = new Race(40828492, 233101111101487L);
+        System.out.printf("Part 2: %d\n", waitForIt.part2(inputPart2));
     }
 }

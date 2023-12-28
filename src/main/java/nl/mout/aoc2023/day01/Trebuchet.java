@@ -1,11 +1,7 @@
 package nl.mout.aoc2023.day01;
 
-import nl.mout.aoc2023.support.InputLoader;
-
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
