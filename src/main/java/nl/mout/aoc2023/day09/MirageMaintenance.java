@@ -13,27 +13,35 @@ public class MirageMaintenance {
 
     private final List<List<Integer>> lines;
 
-    MirageMaintenance(String input) {
+    public MirageMaintenance(String input) {
         lines = input.lines().map(this::parseLine).toList();
     }
 
-    List<Integer> parseLine(String line) {
+    public int part1() {
+        return extrapolateAndSum((row, placeholder) -> row.getLast() + placeholder);
+    }
+
+    public int part2() {
+        return extrapolateAndSum((row, placeholder) -> row.getFirst() - placeholder);
+    }
+
+    private List<Integer> parseLine(String line) {
         return list(new StringTokenizer(line, " ")).stream()
                 .map(token -> parseInt((String) token))
                 .toList();
     }
 
-    boolean allZero(List<Integer> numbers) {
+    private boolean allZero(List<Integer> numbers) {
         return numbers.stream().allMatch(n -> n == 0);
     }
 
-    List<Integer> calculateDiffs(List<Integer> numbers) {
+    private List<Integer> calculateDiffs(List<Integer> numbers) {
         return range(0, numbers.size() - 1)
                 .mapToObj(i -> numbers.get(i + 1) - numbers.get(i))
                 .toList();
     }
 
-    int extrapolate(List<Integer> numbers, BiFunction<List<Integer>, Integer, Integer> placeholderFunction) {
+    private int extrapolate(List<Integer> numbers, BiFunction<List<Integer>, Integer, Integer> placeholderFunction) {
         if (allZero(numbers)) {
             return 0;
         }
@@ -41,22 +49,16 @@ public class MirageMaintenance {
         return placeholderFunction.apply(numbers, extrapolate(diffs, placeholderFunction));
     }
 
-    int extrapolateAndSum(BiFunction<List<Integer>, Integer, Integer> placeholderFunction) {
-        return lines.stream().mapToInt(numbers -> extrapolate(numbers, placeholderFunction)).sum();
-    }
-
-    int part1() {
-        return extrapolateAndSum((row, placeholder) -> row.getLast() + placeholder);
-    }
-
-    int part2() {
-        return extrapolateAndSum((row, placeholder) -> row.getFirst() - placeholder);
+    private int extrapolateAndSum(BiFunction<List<Integer>, Integer, Integer> placeholderFunction) {
+        return lines.stream()
+                .mapToInt(numbers -> extrapolate(numbers, placeholderFunction))
+                .sum();
     }
 
     public static void main(String[] args) {
         var input = loadInput("day09-input.txt");
         var mirageMaintenance = new MirageMaintenance(input);
-        System.out.println("Part 1: " + mirageMaintenance.part1());
-        System.out.println("Part 2: " + mirageMaintenance.part2());
+        System.out.printf("Part 1: %d\n", mirageMaintenance.part1());
+        System.out.printf("Part 2: %d\n", mirageMaintenance.part2());
     }
 }
