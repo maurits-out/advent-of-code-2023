@@ -6,23 +6,51 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 
 public class HotSprings {
 
-    final List<ConditionRecord> records;
+    private final List<ConditionRecord> records;
 
-    final Map<CacheKey, Long> cache = new HashMap<>();
+    private final Map<CacheKey, Long> cache = new HashMap<>();
 
-    record CacheKey(String field, List<Integer> expectedBlockSizes) {
-    }
-
-    HotSprings(String input) {
+    public HotSprings(String input) {
         this.records = parse(input);
     }
 
-    List<ConditionRecord> parse(String input) {
+    public long part1() {
+        return countAndSumArrangements(records.stream());
+    }
+
+    public long part2() {
+        return countAndSumArrangements(records.stream().map(ConditionRecord::extend));
+    }
+
+    private long countAndSumArrangements(Stream<ConditionRecord> records) {
+        return records.mapToLong(record -> countArrangements(record.field(), record.sizes())).sum();
+    }
+
+    private record ConditionRecord(String field, List<Integer> sizes) {
+        ConditionRecord extend() {
+            var extendedField = new StringBuilder();
+            extendedField.repeat(field + "?", 5);
+            extendedField.setLength(extendedField.length() - 1);
+
+            var extendedSizes = new ArrayList<Integer>();
+            for (var i = 0; i < 5; i++) {
+                extendedSizes.addAll(sizes);
+            }
+
+            return new ConditionRecord(extendedField.toString(), extendedSizes);
+        }
+    }
+
+    private record CacheKey(String field, List<Integer> expectedBlockSizes) {
+    }
+
+    private List<ConditionRecord> parse(String input) {
         return input.lines().map(line -> {
             var parts = line.split("[ ,]");
             var sizes = stream(parts, 1, parts.length).map(Integer::parseInt).toList();
@@ -30,7 +58,7 @@ public class HotSprings {
         }).toList();
     }
 
-    long countArrangements(String field, List<Integer> expectedBlockSizes) {
+    private long countArrangements(String field, List<Integer> expectedBlockSizes) {
         if (field.isEmpty()) {
             if (expectedBlockSizes.isEmpty()) {
                 return 1;
@@ -39,10 +67,10 @@ public class HotSprings {
         }
 
         if (expectedBlockSizes.isEmpty()) {
-            if (field.indexOf('#') >= 0) {
-                return 0;
+            if (field.indexOf('#') == -1) {
+                return 1;
             }
-            return 1;
+            return 0;
         }
 
         var key = new CacheKey(field, expectedBlockSizes);
@@ -74,35 +102,10 @@ public class HotSprings {
         return count;
     }
 
-    record ConditionRecord(String field, List<Integer> sizes) {
-    }
-
-    long part1() {
-        return records.stream()
-                .mapToLong(record -> countArrangements(record.field(), record.sizes()))
-                .sum();
-    }
-
-
-    long part2() {
-        var extendedRecords = new ArrayList<ConditionRecord>();
-        for (ConditionRecord record : records) {
-            var extendedField = new StringBuilder();
-            var extendedSizes = new ArrayList<Integer>();
-            for (var i = 0; i < 5; i++) {
-                extendedField.append(record.field).append('?');
-                extendedSizes.addAll(record.sizes);
-            }
-            extendedField.setLength(extendedField.length() - 1);
-            extendedRecords.add(new ConditionRecord(extendedField.toString(), extendedSizes));
-        }
-        return extendedRecords.stream().mapToLong(record -> countArrangements(record.field, record.sizes)).sum();
-    }
-
     public static void main(String[] args) {
         var input = InputLoader.loadInput("day12-input.txt");
         var hotSprings = new HotSprings(input);
-        System.out.println("Part 1: " + hotSprings.part1());
-        System.out.println("Part 2: " + hotSprings.part2());
+        System.out.printf("Part 1: %d\n", hotSprings.part1());
+        System.out.printf("Part 2: %d\n", hotSprings.part2());
     }
 }
