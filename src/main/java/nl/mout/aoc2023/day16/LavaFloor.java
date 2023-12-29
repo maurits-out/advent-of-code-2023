@@ -45,35 +45,38 @@ public class LavaFloor {
     private record Beam(Location location, Direction direction) {
     }
 
-    private Beam moveForward(Beam beam) {
+    private List<Beam> moveForward(Beam beam) {
         var location = beam.location();
         var direction = beam.direction();
-        return switch (direction) {
+        var result = switch (direction) {
             case NORTH -> new Beam(new Location(location.row() - 1, location.column()), NORTH);
             case EAST -> new Beam(new Location(location.row(), location.column() + 1), EAST);
             case SOUTH -> new Beam(new Location(location.row() + 1, location.column()), SOUTH);
             case WEST -> new Beam(new Location(location.row(), location.column() - 1), WEST);
         };
+        return List.of(result);
     }
 
-    private Beam moveMirrorSlash(Beam beam) {
+    private List<Beam> moveMirrorSlash(Beam beam) {
         var location = beam.location();
-        return switch (beam.direction()) {
+        var result = switch (beam.direction()) {
             case NORTH -> new Beam(new Location(location.row(), location.column() + 1), EAST);
             case EAST -> new Beam(new Location(location.row() - 1, location.column()), NORTH);
             case SOUTH -> new Beam(new Location(location.row(), location.column() - 1), WEST);
             case WEST -> new Beam(new Location(location.row() + 1, location.column()), SOUTH);
         };
+        return List.of(result);
     }
 
-    private Beam moveMirrorBackslash(Beam beam) {
+    private List<Beam> moveMirrorBackslash(Beam beam) {
         var location = beam.location();
-        return switch (beam.direction()) {
+        var result = switch (beam.direction()) {
             case NORTH -> new Beam(new Location(location.row(), location.column() - 1), WEST);
             case EAST -> new Beam(new Location(location.row() + 1, location.column()), SOUTH);
             case SOUTH -> new Beam(new Location(location.row(), location.column() + 1), EAST);
             case WEST -> new Beam(new Location(location.row() - 1, location.column()), NORTH);
         };
+        return List.of(result);
     }
 
     private List<Beam> splitHyphen(Beam beam) {
@@ -114,24 +117,18 @@ public class LavaFloor {
             var beam = beams.pop();
             while (isOnGrid(beam) && !history.contains(beam)) {
                 history.add(beam);
-                switch (layout[beam.location().row()][beam.location().column()]) {
-                    case '.' -> beam = moveForward(beam);
-                    case '/' -> beam = moveMirrorSlash(beam);
-                    case '\\' -> beam = moveMirrorBackslash(beam);
-                    case '-' -> {
-                        var newBeams = splitHyphen(beam);
-                        beam = newBeams.getFirst();
-                        if (newBeams.size() > 1) {
-                            beams.push(newBeams.getLast());
-                        }
-                    }
-                    case '|' -> {
-                        var newBeams = splitPipe(beam);
-                        beam = newBeams.getFirst();
-                        if (newBeams.size() > 1) {
-                            beams.push(newBeams.getLast());
-                        }
-                    }
+                char ch = layout[beam.location().row()][beam.location().column()];
+                var newBeams = switch (ch) {
+                    case '.' -> moveForward(beam);
+                    case '/' -> moveMirrorSlash(beam);
+                    case '\\' -> moveMirrorBackslash(beam);
+                    case '-' -> splitHyphen(beam);
+                    case '|' -> splitPipe(beam);
+                    default -> throw new IllegalStateException("Unsupported character in layout: " + ch);
+                };
+                beam = newBeams.getFirst();
+                if (newBeams.size() > 1) {
+                    beams.push(newBeams.getLast());
                 }
             }
         }
