@@ -13,11 +13,11 @@ public class ClumsyCrucible {
 
     public ClumsyCrucible(String input) {
         this.map = input.lines()
-                .map(line -> line.chars().map(ch -> digit(ch, 10)).toArray())
+                .map(this::parseLine)
                 .toArray(int[][]::new);
     }
 
-    private int part1() {
+    public int part1() {
         return findLeastHeatLoss(
                 v -> v.location.row == map.length - 1 && v.location.column == map[0].length - 1,
                 v -> v.steps < 3,
@@ -25,7 +25,7 @@ public class ClumsyCrucible {
         );
     }
 
-    private int part2() {
+    public int part2() {
         return findLeastHeatLoss(
                 v -> v.location.row == map.length - 1 && v.location.column == map[0].length - 1 && v.steps >= 4,
                 v -> v.steps < 10,
@@ -33,13 +33,32 @@ public class ClumsyCrucible {
         );
     }
 
+    private record Vertex(Location location, Direction direction, int steps) {
+    }
+
+    private record Node(int distance, Vertex vertex) implements Comparable<Node> {
+        @Override
+        public int compareTo(Node o) {
+            return this.distance - o.distance;
+        }
+    }
+
+    private record Location(int row, int column) {
+    }
+
+    enum Direction {
+        NORTH, WEST, SOUTH, EAST
+    }
+
+    private int[] parseLine(String line) {
+        return line.chars().map(ch -> digit(ch, 10)).toArray();
+    }
 
     private int findLeastHeatLoss(Predicate<Vertex> isAtTarget, Predicate<Vertex> isForwardAllowed, Predicate<Vertex> isTurnAllowed) {
         var dist = new HashMap<Vertex, Integer>();
         var start = new Vertex( new Location(0, 0), Direction.EAST, 0);
         dist.put(start, 0);
-        var queue = new PriorityQueue<Node>();
-        queue.offer(new Node(0, start));
+        var queue = new PriorityQueue<Node>(List.of(new Node(0, start)));
 
         while (!queue.isEmpty()) {
             var node = queue.poll();
@@ -72,9 +91,8 @@ public class ClumsyCrucible {
 
         if (isOnMap(forward)) {
             return Optional.of(new Vertex(forward, vertex.direction, vertex.steps + 1));
-        } else {
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     private Optional<Vertex> turnLeft(Vertex vertex, Predicate<Vertex> isAllowed) {
@@ -85,30 +103,28 @@ public class ClumsyCrucible {
         Location left;
         Direction direction;
         switch (vertex.direction) {
-            case NORTH:
+            case NORTH -> {
                 direction = Direction.WEST;
                 left = new Location(vertex.location.row, vertex.location.column - 1);
-                break;
-            case WEST:
+            }
+            case WEST -> {
                 direction = Direction.SOUTH;
                 left = new Location(vertex.location.row + 1, vertex.location.column);
-                break;
-            case SOUTH:
+            }
+            case SOUTH -> {
                 direction = Direction.EAST;
                 left = new Location(vertex.location.row, vertex.location.column + 1);
-                break;
-            case EAST:
-            default:
+            }
+            default -> {
                 direction = Direction.NORTH;
                 left = new Location(vertex.location.row - 1, vertex.location.column);
-                break;
+            }
         }
 
         if (isOnMap(left)) {
             return Optional.of(new Vertex(left, direction, 1));
-        } else {
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     private Optional<Vertex> turnRight(Vertex vertex, Predicate<Vertex> isAllowed) {
@@ -119,30 +135,28 @@ public class ClumsyCrucible {
         Location right;
         Direction direction;
         switch (vertex.direction) {
-            case NORTH:
+            case NORTH -> {
                 direction = Direction.EAST;
                 right = new Location(vertex.location.row, vertex.location.column + 1);
-                break;
-            case WEST:
+            }
+            case WEST -> {
                 direction = Direction.NORTH;
                 right = new Location(vertex.location.row - 1, vertex.location.column);
-                break;
-            case SOUTH:
+            }
+            case SOUTH -> {
                 direction = Direction.WEST;
                 right = new Location(vertex.location.row, vertex.location.column - 1);
-                break;
-            case EAST:
-            default:
+            }
+            default -> {
                 direction = Direction.SOUTH;
                 right = new Location(vertex.location.row + 1, vertex.location.column);
-                break;
+            }
         }
 
         if (isOnMap(right)) {
             return Optional.of(new Vertex(right, direction, 1));
-        } else {
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     private boolean isOnMap(Location location) {
@@ -157,27 +171,10 @@ public class ClumsyCrucible {
         return result;
     }
 
-    record Vertex(Location location, Direction direction, int steps) {
-    }
-
-    record Node(int distance, Vertex vertex) implements Comparable<Node> {
-        @Override
-        public int compareTo(Node o) {
-            return this.distance - o.distance;
-        }
-    }
-
-    record Location(int row, int column) {
-    }
-
-    enum Direction {
-        NORTH, WEST, SOUTH, EAST
-    }
-
     public static void main(String[] args) {
         var input = loadInput("day17-input.txt");
         var clumsyCrucible = new ClumsyCrucible(input);
-        System.out.println("Part 1: " + clumsyCrucible.part1());
-        System.out.println("Part 2: " + clumsyCrucible.part2());
+        System.out.printf("Part 1: %d\n", clumsyCrucible.part1());
+        System.out.printf("Part 2: %d\n", clumsyCrucible.part2());
     }
 }
