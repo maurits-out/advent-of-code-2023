@@ -58,7 +58,7 @@ public class ClumsyCrucible {
         var dist = new HashMap<Vertex, Integer>();
         var start = new Vertex( new Location(0, 0), Direction.EAST, 0);
         dist.put(start, 0);
-        var queue = new PriorityQueue<Node>(List.of(new Node(0, start)));
+        var queue = new PriorityQueue<>(List.of(new Node(0, start)));
 
         while (!queue.isEmpty()) {
             var node = queue.poll();
