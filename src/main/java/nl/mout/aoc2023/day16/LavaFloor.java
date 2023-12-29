@@ -115,7 +115,7 @@ public class LavaFloor {
         var history = new HashSet<Beam>();
         while (!beams.isEmpty()) {
             var beam = beams.pop();
-            while (isOnGrid(beam) && !history.contains(beam)) {
+            if (!history.contains(beam)) {
                 history.add(beam);
                 char ch = layout[beam.location().row()][beam.location().column()];
                 var newBeams = switch (ch) {
@@ -126,10 +126,7 @@ public class LavaFloor {
                     case '|' -> splitPipe(beam);
                     default -> throw new IllegalStateException("Unsupported character in layout: " + ch);
                 };
-                beam = newBeams.getFirst();
-                if (newBeams.size() > 1) {
-                    beams.push(newBeams.getLast());
-                }
+                newBeams.stream().filter(this::isOnGrid).forEach(beams::add);
             }
         }
         return history.stream().map(Beam::location).distinct().count();
