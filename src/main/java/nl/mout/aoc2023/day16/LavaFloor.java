@@ -17,109 +17,12 @@ public class LavaFloor {
         this.layout = input.lines().map(String::toCharArray).toArray(char[][]::new);
     }
 
-    Beam moveForward(Beam beam) {
-        var location = beam.location();
-        var direction = beam.direction();
-        return switch (direction) {
-            case NORTH -> new Beam(new Location(location.row() - 1, location.column()), NORTH);
-            case EAST -> new Beam(new Location(location.row(), location.column() + 1), EAST);
-            case SOUTH -> new Beam(new Location(location.row() + 1, location.column()), SOUTH);
-            case WEST -> new Beam(new Location(location.row(), location.column() - 1), WEST);
-        };
-    }
-
-    Beam moveMirrorSlash(Beam beam) {
-        var location = beam.location();
-        return switch (beam.direction()) {
-            case NORTH -> new Beam(new Location(location.row(), location.column() + 1), EAST);
-            case EAST -> new Beam(new Location(location.row() - 1, location.column()), NORTH);
-            case SOUTH -> new Beam(new Location(location.row(), location.column() - 1), WEST);
-            case WEST -> new Beam(new Location(location.row() + 1, location.column()), SOUTH);
-        };
-    }
-
-    Beam moveMirrorBackslash(Beam beam) {
-        var location = beam.location();
-        return switch (beam.direction()) {
-            case NORTH -> new Beam(new Location(location.row(), location.column() - 1), WEST);
-            case EAST -> new Beam(new Location(location.row() + 1, location.column()), SOUTH);
-            case SOUTH -> new Beam(new Location(location.row(), location.column() + 1), EAST);
-            case WEST -> new Beam(new Location(location.row() - 1, location.column()), NORTH);
-        };
-    }
-
-    List<Beam> splitHyphen(Beam beam) {
-        var location = beam.location();
-        var direction = beam.direction();
-        return switch (direction) {
-            case NORTH, SOUTH -> List.of(
-                    new Beam(new Location(location.row(), location.column() + 1), EAST),
-                    new Beam(new Location(location.row(), location.column() - 1), WEST)
-            );
-            case EAST -> List.of(new Beam(new Location(location.row(), location.column() + 1), direction));
-            case WEST -> List.of(new Beam(new Location(location.row(), location.column() - 1), direction));
-        };
-    }
-
-    List<Beam> splitPipe(Beam beam) {
-        var location = beam.location();
-        var direction = beam.direction();
-        return switch (direction) {
-            case NORTH -> List.of(new Beam(new Location(location.row() - 1, location.column()), direction));
-            case SOUTH -> List.of(new Beam(new Location(location.row() + 1, location.column()), direction));
-            case EAST, WEST -> List.of(
-                    new Beam(new Location(location.row() - 1, location.column()), NORTH),
-                    new Beam(new Location(location.row() + 1, location.column()), SOUTH)
-            );
-        };
-    }
-
-    long part1() {
+    public long part1() {
         var start = new Beam(new Location(0, 0), EAST);
         return energize(start);
     }
 
-    private long energize(Beam start) {
-        var beams = new LinkedList<>(List.of(start));
-        var history = new HashSet<Beam>();
-        while (!beams.isEmpty()) {
-            var beam = beams.pop();
-            while (!history.contains(beam) && 0 <= beam.location().row() && beam.location().row() < layout.length &&
-                    0 <= beam.location().column() && beam.location().column() < layout[0].length) {
-                history.add(beam);
-                switch (layout[beam.location().row()][beam.location().column()]) {
-                    case '.':
-                        beam = moveForward(beam);
-                        break;
-                    case '/':
-                        beam = moveMirrorSlash(beam);
-                        break;
-                    case '\\':
-                        beam = moveMirrorBackslash(beam);
-                        break;
-                    case '-': {
-                        var newBeams = splitHyphen(beam);
-                        beam = newBeams.getFirst();
-                        if (newBeams.size() > 1) {
-                            beams.push(newBeams.getLast());
-                        }
-                        break;
-                    }
-                    case '|': {
-                        var newBeams = splitPipe(beam);
-                        beam = newBeams.getFirst();
-                        if (newBeams.size() > 1) {
-                            beams.push(newBeams.getLast());
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        return history.stream().map(Beam::location).distinct().count();
-    }
-
-    long part2() {
+    public long part2() {
         var beams = new ArrayList<Beam>();
         range(0, layout[0].length).forEach(c -> {
             beams.add(new Beam(new Location(0, c), SOUTH));
@@ -132,20 +35,113 @@ public class LavaFloor {
         return beams.stream().mapToLong(this::energize).max().orElseThrow();
     }
 
-    record Location(int row, int column) {
+    private record Location(int row, int column) {
     }
 
     enum Direction {
         NORTH, EAST, SOUTH, WEST
     }
 
-    record Beam(Location location, Direction direction) {
+    private record Beam(Location location, Direction direction) {
+    }
+
+    private Beam moveForward(Beam beam) {
+        var location = beam.location();
+        var direction = beam.direction();
+        return switch (direction) {
+            case NORTH -> new Beam(new Location(location.row() - 1, location.column()), NORTH);
+            case EAST -> new Beam(new Location(location.row(), location.column() + 1), EAST);
+            case SOUTH -> new Beam(new Location(location.row() + 1, location.column()), SOUTH);
+            case WEST -> new Beam(new Location(location.row(), location.column() - 1), WEST);
+        };
+    }
+
+    private Beam moveMirrorSlash(Beam beam) {
+        var location = beam.location();
+        return switch (beam.direction()) {
+            case NORTH -> new Beam(new Location(location.row(), location.column() + 1), EAST);
+            case EAST -> new Beam(new Location(location.row() - 1, location.column()), NORTH);
+            case SOUTH -> new Beam(new Location(location.row(), location.column() - 1), WEST);
+            case WEST -> new Beam(new Location(location.row() + 1, location.column()), SOUTH);
+        };
+    }
+
+    private Beam moveMirrorBackslash(Beam beam) {
+        var location = beam.location();
+        return switch (beam.direction()) {
+            case NORTH -> new Beam(new Location(location.row(), location.column() - 1), WEST);
+            case EAST -> new Beam(new Location(location.row() + 1, location.column()), SOUTH);
+            case SOUTH -> new Beam(new Location(location.row(), location.column() + 1), EAST);
+            case WEST -> new Beam(new Location(location.row() - 1, location.column()), NORTH);
+        };
+    }
+
+    private List<Beam> splitHyphen(Beam beam) {
+        var location = beam.location();
+        var direction = beam.direction();
+        return switch (direction) {
+            case NORTH, SOUTH -> List.of(
+                    new Beam(new Location(location.row(), location.column() + 1), EAST),
+                    new Beam(new Location(location.row(), location.column() - 1), WEST)
+            );
+            case EAST -> List.of(new Beam(new Location(location.row(), location.column() + 1), direction));
+            case WEST -> List.of(new Beam(new Location(location.row(), location.column() - 1), direction));
+        };
+    }
+
+    private List<Beam> splitPipe(Beam beam) {
+        var location = beam.location();
+        var direction = beam.direction();
+        return switch (direction) {
+            case NORTH -> List.of(new Beam(new Location(location.row() - 1, location.column()), direction));
+            case SOUTH -> List.of(new Beam(new Location(location.row() + 1, location.column()), direction));
+            case EAST, WEST -> List.of(
+                    new Beam(new Location(location.row() - 1, location.column()), NORTH),
+                    new Beam(new Location(location.row() + 1, location.column()), SOUTH)
+            );
+        };
+    }
+
+    private boolean isOnGrid(Beam beam) {
+        return 0 <= beam.location().row() && beam.location().row() < layout.length &&
+                0 <= beam.location().column() && beam.location().column() < layout[0].length;
+    }
+
+    private long energize(Beam start) {
+        var beams = new LinkedList<>(List.of(start));
+        var history = new HashSet<Beam>();
+        while (!beams.isEmpty()) {
+            var beam = beams.pop();
+            while (isOnGrid(beam) && !history.contains(beam)) {
+                history.add(beam);
+                switch (layout[beam.location().row()][beam.location().column()]) {
+                    case '.' -> beam = moveForward(beam);
+                    case '/' -> beam = moveMirrorSlash(beam);
+                    case '\\' -> beam = moveMirrorBackslash(beam);
+                    case '-' -> {
+                        var newBeams = splitHyphen(beam);
+                        beam = newBeams.getFirst();
+                        if (newBeams.size() > 1) {
+                            beams.push(newBeams.getLast());
+                        }
+                    }
+                    case '|' -> {
+                        var newBeams = splitPipe(beam);
+                        beam = newBeams.getFirst();
+                        if (newBeams.size() > 1) {
+                            beams.push(newBeams.getLast());
+                        }
+                    }
+                }
+            }
+        }
+        return history.stream().map(Beam::location).distinct().count();
     }
 
     public static void main(String[] args) {
         var input = loadInput("day16-input.txt");
         var lavaFloor = new LavaFloor(input);
-        System.out.println("Part 1: " + lavaFloor.part1());
-        System.out.println("Part 2: " + lavaFloor.part2());
+        System.out.printf("Part 1: %d\n", lavaFloor.part1());
+        System.out.printf("Part 2: %d\n", lavaFloor.part2());
     }
 }
