@@ -14,7 +14,7 @@ import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
 public class SandSlabs {
 
-    public static final Pattern NUMBER_PATTERN = compile("\\d+");
+    private static final Pattern NUMBER_PATTERN = compile("\\d+");
 
     private final List<Set<Integer>> lowerSupportingUpper = new ArrayList<>();
     private final List<Set<Integer>> upperSupportedByLower = new ArrayList<>();
