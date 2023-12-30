@@ -41,6 +41,6 @@ public class Snowverload {
     public static void main(String[] args) {
         var input = loadInput("day25-input.txt");
         var snowverload = new Snowverload(input);
-        System.out.println("Answer: " + snowverload.part1());
+        System.out.printf("Part 1: %d\n", snowverload.part1());
     }
 }
