@@ -5,10 +5,12 @@ import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.lang.Long.parseLong;
+import static java.lang.Math.round;
 import static java.util.Arrays.stream;
 import static java.util.regex.Pattern.compile;
 import static nl.mout.aoc2023.support.InputLoader.loadInput;
@@ -35,9 +37,11 @@ public class Odds {
         var count = 0;
         for (var i = 0; i < hailstones.length - 1; i++) {
             for (var j = i + 1; j < hailstones.length; j++) {
-                Hailstone hailstone1 = hailstones[i], hailstone2 = hailstones[j];
-                var intersection = calculateIntersection(hailstone1, hailstone2);
-                if (intersection != null && inRange(intersection) && isInFuture(hailstone1, hailstone2, intersection)) {
+                var intersection = calculateIntersection(hailstones[i], hailstones[j]);
+                if (intersection.isEmpty()) {
+                    continue;
+                }
+                if (inRange(intersection.get()) && isInFuture(hailstones[i], hailstones[j], intersection.get())) {
                     count++;
                 }
             }
@@ -45,21 +49,30 @@ public class Odds {
         return count;
     }
 
-    private double[] calculateIntersection(Hailstone hailstone1, Hailstone hailstone2) {
-        var coefficients = new Array2DRowRealMatrix(new double[][]{
+    public long part2() {
+        var xySolution = solveXY();
+        var zSolution = solveZ(xySolution[0], xySolution[2]);
+        return round(xySolution[0] + xySolution[1] + zSolution[0]);
+    }
+
+    private record Hailstone(long px, long py, long pz, long vx, long vy, long vz) {
+    }
+
+    private Optional<double[]> calculateIntersection(Hailstone hailstone1, Hailstone hailstone2) {
+        var coefficientMatrix = new Array2DRowRealMatrix(new double[][]{
                 {hailstone1.vy(), -hailstone1.vx()},
                 {hailstone2.vy(), -hailstone2.vx()}
         }, false);
-        var solver = new LUDecomposition(coefficients).getSolver();
-        var constants = new ArrayRealVector(new double[]{
+        var constantVector = new ArrayRealVector(new double[]{
                 (hailstone1.vy() * hailstone1.px()) - (hailstone1.vx() * hailstone1.py()),
                 (hailstone2.vy() * hailstone2.px()) - (hailstone2.vx() * hailstone2.py()),
         }, false);
 
         try {
-            return solver.solve(constants).toArray();
+            var solver = new LUDecomposition(coefficientMatrix).getSolver();
+            return Optional.of(solver.solve(constantVector).toArray());
         } catch (SingularMatrixException ex) {
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -76,25 +89,13 @@ public class Odds {
                 hailstone.vy() * (intersection[1] - hailstone.py()) >= 0;
     }
 
-    private record Hailstone(long px, long py, long pz, long vx, long vy, long vz) {
-    }
-
-    public long part2() {
+    private double[] solveXY() {
         var coefficients = new double[4][];
         var constants = new double[4];
-        double[] xandy = solveXY(coefficients, constants);
-        System.out.printf("x = %f; y = %f; vx = %f; vy = %f\n", xandy[0], xandy[1], xandy[2], xandy[3]);
-        double[] yandz = solveYZ(coefficients, constants);
-        System.out.printf("y = %f; z = %f; vy = %f; vz = %f\n", yandz[0], yandz[1], yandz[2], yandz[3]);
-
-        return (long) (xandy[0] + xandy[1] + yandz[1]);
-    }
-
-    private double[] solveXY(double[][] coefficients, double[] constants) {
         for (int r = 0; r < 4; r++) {
-            var h1 = hailstones[r * 2];
-            var h2 = hailstones[(r * 2) + 1];
-            coefficients[r] = new double[] {
+            var h1 = hailstones[r];
+            var h2 = hailstones[r + 1];
+            coefficients[r] = new double[]{
                     h2.vy() - h1.vy(), h1.vx() - h2.vx(), h1.py() - h2.py(), h2.px() - h1.px()
             };
             constants[r] = (h2.px() * h2.vy()) - (h2.py() * h2.vx()) - (h1.px() * h1.vy()) + (h1.py() * h1.vx());
@@ -105,14 +106,15 @@ public class Odds {
         return solver.solve(constantVector).toArray();
     }
 
-    private double[] solveYZ(double[][] coefficients, double[] constants) {
-        for (int r = 0; r < 4; r++) {
-            var h1 = hailstones[r * 2];
-            var h2 = hailstones[(r * 2) + 1];
-            coefficients[r] = new double[] {
-                    h2.vz() - h1.vz(), h1.vy() - h2.vy(), h1.pz() - h2.pz(), h2.py() - h1.py()
-            };
-            constants[r] = (h2.py() * h2.vz()) - (h2.pz() * h2.vy()) - (h1.py() * h1.vz()) + (h1.pz() * h1.vy());
+    private double[] solveZ(double rockPx, double rockVx) {
+        var coefficients = new double[2][];
+        var constants = new double[2];
+        for (int r = 0; r < 2; r++) {
+            var h1 = hailstones[r];
+            var h2 = hailstones[r + 1];
+            coefficients[r] = new double[]{h1.vx() - h2.vx(), h2.px() - h1.px()};
+            constants[r] = (h2.px() * h2.vz()) - (h2.pz() * h2.vx()) - (h1.px() * h1.vz()) + (h1.pz() * h1.vx()) -
+                    (rockPx * h2.vz()) + (rockPx * h1.vz()) - (h1.pz() * rockVx) + (h2.pz() * rockVx);
         }
         var coefficientMatrix = new Array2DRowRealMatrix(coefficients, false);
         var solver = new LUDecomposition(coefficientMatrix).getSolver();
@@ -123,7 +125,7 @@ public class Odds {
     public static void main(String[] args) {
         var input = loadInput("day24-input.txt");
         var odds = new Odds(input);
-        System.out.println("Part 1: " + odds.part1());
-        System.out.println("Part 2: " + odds.part2());
+        System.out.printf("Part 1: %d\n", odds.part1());
+        System.out.printf("Part 2: %d\n", odds.part2());
     }
 }
