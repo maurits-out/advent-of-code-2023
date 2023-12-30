@@ -1,7 +1,5 @@
 package nl.mout.aoc2023.day19;
 
-import nl.mout.aoc2023.support.InputLoader;
-
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -12,40 +10,61 @@ import static java.lang.System.lineSeparator;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.iterate;
+import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
 public class Aplenty {
 
-    Map<String, Workflow> workflows;
-    List<Map<String, Integer>> parts;
+    private static final Pattern PART_PATTERN = Pattern.compile("[,=]");
+    private static final Pattern WORKFLOW_PATTERN = Pattern.compile("[{},]");
 
-    record Workflow(String name, List<Rule> rules) {
-    }
-
-    record Interval(int from, int to) {
-        boolean isValid() {
-            return from < to;
-        }
-    }
+    private Map<String, Workflow> workflows;
+    private List<Map<String, Integer>> parts;
 
     public Aplenty(String input) {
         parseInput(input);
     }
 
-    void parseInput(String input) {
+    public int part1() {
+        return parts.stream()
+                .filter(p -> evaluate(p).equals("A"))
+                .mapToInt(this::sumPartValues)
+                .sum();
+    }
+
+    public long part2() {
+        var intervals = Map.of(
+                "x", new Interval(1, 4001),
+                "m", new Interval(1, 4001),
+                "a", new Interval(1, 4001),
+                "s", new Interval(1, 4001)
+        );
+        return countCombinations("in", intervals);
+    }
+
+    private record Workflow(String name, List<Rule> rules) {
+    }
+
+    private record Interval(int from, int to) {
+        boolean isValid() {
+            return from < to;
+        }
+    }
+
+    private void parseInput(String input) {
         var sections = input.split(lineSeparator() + lineSeparator());
         this.workflows = sections[0].lines().map(this::parseWorkflow).collect(toMap(Workflow::name, identity()));
         this.parts = sections[1].lines().map(this::parsePart).toList();
     }
 
-    Map<String, Integer> parsePart(String line) {
-        var p = Pattern.compile("[,=]").split(line.substring(1, line.length() - 1));
+    private Map<String, Integer> parsePart(String line) {
+        var p = PART_PATTERN.split(line.substring(1, line.length() - 1));
         return iterate(0, i -> i < p.length, i -> i + 2)
                 .boxed()
                 .collect(toMap(i -> p[i], i -> parseInt(p[i + 1])));
     }
 
-    Workflow parseWorkflow(String line) {
-        var p = Pattern.compile("[{},]").split(line);
+    private Workflow parseWorkflow(String line) {
+        var p = WORKFLOW_PATTERN.split(line);
         var name = p[0];
         var rules = new ArrayList<Rule>();
         for (var i = 1; i < p.length; i++) {
@@ -63,7 +82,7 @@ public class Aplenty {
         return new Workflow(name, rules);
     }
 
-    String applyWorkflow(Workflow workflow, Map<String, Integer> part) {
+    private String applyWorkflow(Workflow workflow, Map<String, Integer> part) {
         return workflow.rules().stream()
                 .map(rule -> rule.evaluate(part))
                 .filter(Optional::isPresent)
@@ -71,7 +90,7 @@ public class Aplenty {
                 .findFirst().orElseThrow();
     }
 
-    String evaluate(Map<String, Integer> part) {
+    private String evaluate(Map<String, Integer> part) {
         var current = "in";
         while (!current.equals("A") && (!current.equals("R"))) {
             var workflow = workflows.get(current);
@@ -80,24 +99,24 @@ public class Aplenty {
         return current;
     }
 
-    int sumPartValues(Map<String, Integer> part) {
+    private int sumPartValues(Map<String, Integer> part) {
         return part.values().stream().mapToInt(v -> v).sum();
     }
 
-    Interval applyComparisonToInterval(Comparison c, Interval interval) {
+    private Interval applyComparisonToInterval(Comparison c, Interval interval) {
         if (c.operand().equals("<")) {
             return new Interval(interval.from(), min(interval.to(), c.value()));
         }
         return new Interval(max(interval.from(), c.value() + 1), interval.to());
     }
 
-    Map<String, Interval> updateIntervals(Map<String, Interval> intervals, String category, Interval interval) {
+    private Map<String, Interval> updateIntervals(Map<String, Interval> intervals, String category, Interval interval) {
         var updatedIntervals = new HashMap<>(intervals);
         updatedIntervals.put(category, interval);
         return updatedIntervals;
     }
 
-    long countCombinations(String name, Map<String, Interval> intervals) {
+    private long countCombinations(String name, Map<String, Interval> intervals) {
         if (!intervals.values().stream().allMatch(Interval::isValid)) {
             return 0;
         }
@@ -137,33 +156,16 @@ public class Aplenty {
         return sum;
     }
 
-    long countCombinations(Map<String, Interval> intervals) {
+    private long countCombinations(Map<String, Interval> intervals) {
         return intervals.values().stream()
                 .mapToLong(i -> i.to() - i.from())
                 .reduce(1, (a, b) -> a * b);
     }
 
-    int part1() {
-        return parts.stream()
-                .filter(p -> evaluate(p).equals("A"))
-                .mapToInt(this::sumPartValues)
-                .sum();
-    }
-
-    long part2() {
-        var intervals = Map.of(
-                "x", new Interval(1, 4001),
-                "m", new Interval(1, 4001),
-                "a", new Interval(1, 4001),
-                "s", new Interval(1, 4001)
-        );
-        return countCombinations("in", intervals);
-    }
-
     public static void main(String[] args) {
-        var input = InputLoader.loadInput("day19-input.txt");
+        var input = loadInput("day19-input.txt");
         var aplenty = new Aplenty(input);
-        System.out.println("Part 1: " + aplenty.part1());
-        System.out.println("Part 2: " + aplenty.part2());
+        System.out.printf("Part 1: %d\n", aplenty.part1());
+        System.out.printf("Part 2: %d\n", aplenty.part2());
     }
 }
