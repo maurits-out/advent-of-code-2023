@@ -25,7 +25,7 @@ public class SandSlabs {
 
     public int part1() {
         var count = 0;
-        for (Set<Integer> upperBricks : lowerSupportingUpper) {
+        for (var upperBricks : lowerSupportingUpper) {
             if (upperBricks.stream().allMatch(j -> upperSupportedByLower.get(j).size() > 1)) {
                 count++;
             }
