@@ -6,6 +6,7 @@ import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import java.util.*;
 import java.util.function.Function;
 
+import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.IntStream.range;
 import static nl.mout.aoc2023.support.InputLoader.loadInput;
@@ -27,6 +28,35 @@ public class Walk {
         map = input.lines().map(String::toCharArray).toArray(char[][]::new);
         height = map.length;
         width = map[0].length;
+    }
+
+    public int part1() {
+        return findLongestPath(DIRECTIONS::get);
+    }
+
+    public int part2() {
+        return findLongestPath(key -> DIRECTIONS.get('.'));
+    }
+
+    private record Delta(int dr, int dc) {
+    }
+
+    private record Location(int row, int column) {
+
+        Set<Location> getNeighbors() {
+            return Set.of(new Location(row - 1, column),
+                    new Location(row + 1, column),
+                    new Location(row, column - 1),
+                    new Location(row, column + 1)
+            );
+        }
+
+        Location move(Delta delta) {
+            return new Location(row + delta.dr(), column + delta.dc());
+        }
+    }
+
+    private record QueueElement(int distance, Location location) {
     }
 
     private Location getStart() {
@@ -59,17 +89,17 @@ public class Walk {
                 .collect(toSet());
     }
 
-    private SimpleDirectedWeightedGraph<Location, DefaultEdge> edgeContractions(Function<Character, List<Delta>> directions) {
+    private SimpleDirectedWeightedGraph<Location, DefaultEdge> applyEdgeContraction(Function<Character, List<Delta>> directions) {
         var graph = new SimpleDirectedWeightedGraph<Location, DefaultEdge>(DefaultEdge.class);
         graph.addVertex(getStart());
         graph.addVertex(getDestination());
         findIntersections().forEach(graph::addVertex);
 
         for (Location startLocation : graph.vertexSet()) {
-            var stack = new LinkedList<>(List.of(new StackElement(0, startLocation)));
+            var queue = new LinkedList<>(List.of(new QueueElement(0, startLocation)));
             var visited = new HashSet<>(List.of(startLocation));
-            while (!stack.isEmpty()) {
-                var element = stack.pop();
+            while (!queue.isEmpty()) {
+                var element = queue.pop();
                 var location = element.location();
                 var distance = element.distance();
                 if (distance != 0 && graph.vertexSet().contains(location)) {
@@ -81,7 +111,7 @@ public class Walk {
                             .map(location::move)
                             .filter(neighbor -> isOnGrid(neighbor) && getMapValue(neighbor) != '#' && !visited.contains(neighbor))
                             .forEach(neighbor -> {
-                                stack.push(new StackElement(distance + 1, neighbor));
+                                queue.add(new QueueElement(distance + 1, neighbor));
                                 visited.add(neighbor);
                             });
                 }
@@ -100,7 +130,7 @@ public class Walk {
             for (Location neighbor : successorListOf(graph, location)) {
                 if (!visited.contains(neighbor)) {
                     var edge = graph.getEdge(location, neighbor);
-                    max = Math.max(max, findLongestPath(neighbor, visited, graph) + (int) graph.getEdgeWeight(edge));
+                    max = max(max, findLongestPath(neighbor, visited, graph) + (int) graph.getEdgeWeight(edge));
                 }
             }
             visited.remove(location);
@@ -109,44 +139,14 @@ public class Walk {
     }
 
     private int findLongestPath(Function<Character, List<Delta>> allowedDirections) {
-        var graph = edgeContractions(allowedDirections);
+        var graph = applyEdgeContraction(allowedDirections);
         return findLongestPath(getStart(), new HashSet<>(), graph);
-    }
-
-    private record Delta(int dr, int dc) {
-    }
-
-    private record Location(int row, int column) {
-
-        Set<Location> getNeighbors() {
-            return Set.of(new Location(row - 1, column),
-                    new Location(row + 1, column),
-                    new Location(row, column - 1),
-                    new Location(row, column + 1)
-            );
-        }
-
-        Location move(Delta delta) {
-            return new Location(row + delta.dr(), column + delta.dc());
-        }
-    }
-
-    private record StackElement(int distance, Location location) {
-    }
-
-    public int part1() {
-        return findLongestPath(DIRECTIONS::get);
-    }
-
-
-    public int part2() {
-        return findLongestPath(key -> DIRECTIONS.get('.'));
     }
 
     public static void main(String[] args) {
         var input = loadInput("day23-input.txt");
         var walk = new Walk(input);
-        System.out.println("Part 1: " + walk.part1());
-        System.out.println("Part 2: " + walk.part2());
+        System.out.printf("Part 1: %d\n", walk.part1());
+        System.out.printf("Part 2: %d\n", walk.part2());
     }
 }
