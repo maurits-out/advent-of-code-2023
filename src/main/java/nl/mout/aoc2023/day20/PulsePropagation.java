@@ -1,12 +1,13 @@
 package nl.mout.aoc2023.day20;
 
-import nl.mout.aoc2023.support.InputLoader;
+import org.apache.commons.math3.util.ArithmeticUtils;
 
 import java.util.*;
 
 import static java.util.Arrays.stream;
 import static nl.mout.aoc2023.day20.Pulse.HIGH;
 import static nl.mout.aoc2023.day20.Pulse.LOW;
+import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
 public class PulsePropagation {
 
@@ -34,21 +35,14 @@ public class PulsePropagation {
             }
         });
 
-        modules.forEach((name, module) -> {
-            module.getOutputs().stream()
-                    .map(modules::get)
-                    .filter(m -> m instanceof Conjunction)
-                    .forEach(m -> ((Conjunction) m).addInput(name));
-        });
+        modules.forEach((name, module) -> module.getOutputs().stream()
+                .map(modules::get)
+                .filter(m -> m instanceof Conjunction)
+                .forEach(m -> ((Conjunction) m).addInput(name))
+        );
     }
 
-    private List<Signal> createBroadcasterSignals() {
-        return broadcastOutputs.stream()
-                .map(output -> new Signal(LOW, "broadcaster", output))
-                .toList();
-    }
-
-    int part1() {
+    public int part1() {
         var lowCount = 0;
         var highCount = 0;
         var broadcasterSignals = createBroadcasterSignals();
@@ -73,24 +67,7 @@ public class PulsePropagation {
         return lowCount * highCount;
     }
 
-    long lcm(long a, long b) {
-        return (a * b) / gcd(a, b);
-    }
-
-    long gcd(long a, long b) {
-        if (b == 0) {
-            return a;
-        }
-        return gcd(b, a % b);
-    }
-
-    private List<String> findInputs(String name) {
-        return modules.keySet().stream()
-                .filter(n -> modules.get(n).getOutputs().contains(name))
-                .toList();
-    }
-
-    long part2() {
+    public long part2() {
         var broadcasterSignals = createBroadcasterSignals();
         var queue = new LinkedList<Signal>();
         var buttonCount = 0;
@@ -115,14 +92,27 @@ public class PulsePropagation {
 
         return buttonCounts.values().stream()
                 .mapToLong(v -> (long) v + 1000)
-                .reduce(this::lcm)
+                .reduce(ArithmeticUtils::lcm)
                 .orElseThrow();
     }
 
+    private List<Signal> createBroadcasterSignals() {
+        return broadcastOutputs.stream()
+                .map(output -> new Signal(LOW, "broadcaster", output))
+                .toList();
+    }
+
+
+    private List<String> findInputs(String name) {
+        return modules.keySet().stream()
+                .filter(n -> modules.get(n).getOutputs().contains(name))
+                .toList();
+    }
+
     public static void main(String[] args) {
-        var input = InputLoader.loadInput("day20-input.txt");
+        var input = loadInput("day20-input.txt");
         var pulsePropagation = new PulsePropagation(input);
-        System.out.println("Part 1: " + pulsePropagation.part1());
-        System.out.println("Part 2: " + pulsePropagation.part2());
+        System.out.printf("Part 1: %d\n", pulsePropagation.part1());
+        System.out.printf("Part 2: %d\n", pulsePropagation.part2());
     }
 }
