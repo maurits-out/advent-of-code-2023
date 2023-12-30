@@ -15,7 +15,6 @@ import static java.util.Arrays.stream;
 import static java.util.regex.Pattern.compile;
 import static nl.mout.aoc2023.support.InputLoader.loadInput;
 
-// https://www.reddit.com/r/adventofcode/comments/18q40he/2023_day_24_part_2_a_straightforward_nonsolver/
 public class Odds {
 
     private static final Pattern NUMBER_PATTERN = compile("-?\\d+");
